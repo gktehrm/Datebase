@@ -48,13 +48,41 @@ export function SignupModal({
     }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault();
-    // UI only - no actual functionality
-    console.log("Signup attempt", { name, email, password, agreements });
-    onEmailVerification(email);
-  };
+  const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  if (!agreements.age || !agreements.terms || !agreements.privacy) {
+    alert("필수 약관에 동의해주세요.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "회원가입 실패");
+      return;
+    }
+
+    alert("회원가입 완료! 이메일 인증을 진행해주세요.");
+    onEmailVerification(email);
+  } catch (err) {
+    console.error(err);
+    alert("서버 연결 오류가 발생했습니다.");
+  }
+};
   return (
     <AnimatePresence>
       {isOpen && (

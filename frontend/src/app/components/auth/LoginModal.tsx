@@ -14,12 +14,43 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // UI only - no actual functionality
-    console.log("Login attempt", { email, password, rememberMe });
-  };
+  const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
 
+  if (!email || !password) {
+    alert("이메일과 비밀번호를 입력해주세요.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "로그인 실패");
+      return;
+    }
+
+    alert("로그인 성공");
+
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    onClose();
+  } catch (err) {
+    console.error(err);
+    alert("서버 연결 오류가 발생했습니다.");
+  }
+};
   return (
     <AnimatePresence>
       {isOpen && (

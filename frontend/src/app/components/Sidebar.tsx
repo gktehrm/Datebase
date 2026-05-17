@@ -36,8 +36,8 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
             <Activity className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-sm text-slate-900 leading-tight">
-              AI 에이전트 로그 투명화 및<br />시스템 호출 적절성 판단 시스템
+            <h1 className="font-display font-bold text-3xl text-slate-900 leading-tight">
+              ARGUS
             </h1>
           </div>
         </div>
