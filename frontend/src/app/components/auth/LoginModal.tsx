@@ -6,9 +6,21 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToSignup: () => void;
+  onLoginSuccess: (user: AuthenticatedUser) => void;
 }
 
-export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProps) {
+export interface AuthenticatedUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export function LoginModal({
+  isOpen,
+  onClose,
+  onSwitchToSignup,
+  onLoginSuccess,
+}: LoginModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -44,6 +56,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
     alert("로그인 성공");
 
     localStorage.setItem("user", JSON.stringify(data.user));
+    onLoginSuccess(data.user);
 
     onClose();
   } catch (err) {

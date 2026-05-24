@@ -1,11 +1,17 @@
 import { motion } from "motion/react";
-import { Activity, History, BarChart3 } from "lucide-react";
+import { Activity, History, BarChart3, LogIn, LogOut } from "lucide-react";
 
 export type View = "realtime" | "history" | "statistics";
 
 interface SidebarProps {
   currentView: View;
   onViewChange: (view: View) => void;
+  user: {
+    name: string;
+    email: string;
+  } | null;
+  onLoginClick: () => void;
+  onLogout: () => void;
 }
 
 const menuItems = [
@@ -26,7 +32,13 @@ const menuItems = [
   },
 ];
 
-export function Sidebar({ currentView, onViewChange }: SidebarProps) {
+export function Sidebar({
+  currentView,
+  onViewChange,
+  user,
+  onLoginClick,
+  onLogout,
+}: SidebarProps) {
   return (
     <div className="w-72 h-full bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 flex flex-col">
       {/* Header */}
@@ -97,6 +109,45 @@ export function Sidebar({ currentView, onViewChange }: SidebarProps) {
           );
         })}
       </nav>
+
+      <div className="p-4 border-t border-slate-200">
+        <div className="px-4 py-3 bg-white border border-slate-200 rounded-xl">
+          {user ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-slate-900 truncate">
+                  {user.name}
+                </div>
+                <div className="text-xs text-slate-500 truncate">
+                  {user.email}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onLogout}
+                title="로그아웃"
+                className="shrink-0 p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-slate-600">
+                로그인 해주세요
+              </span>
+              <button
+                type="button"
+                onClick={onLoginClick}
+                title="로그인"
+                className="shrink-0 p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
 
     </div>
   );
