@@ -15,39 +15,49 @@ function generateDetailLogs(systemCall: string, riskLevel: string, timestamp: Da
   const unixTime = Math.floor(timestamp.getTime() / 1000);
 
   // Common data fields
-  const commonData = [
-    `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"model":"gpt-4o-2024-08-06","service_tier":"default","system_fingerprint":"fp_${Math.random().toString(36).substr(2, 8)}","choices":[{"index":0,"delta":{"role":"assistant","content":"","refusal":null},"logprobs":null,"finish_reason":null}],"obfuscation":"${Math.random().toString(36).substr(2, 6)}"}`,
-    '',
-    `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"model":"gpt-4o-2024-08-06","service_tier":"default","system_fingerprint":"fp_${Math.random().toString(36).substr(2, 8)}","choices":[{"index":0,"delta":{"content":"PLAN"},"logprobs":null,"finish_reason":null}],"obfuscation":"${Math.random().toString(36).substr(2, 6)}"}`,
-  ];
+const bashCommands = [
+  'Bash: {"command": "whoami && id", "description": "Check current user and privileges"}',
 
-  // Plan description based on risk level
-  if (riskLevel === "harmful") {
-    commonData.push(
-      `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"choices":[{"index":0,"delta":{"content":"1. 위험한 시스템 호출 감지: ${systemCall}"},"logprobs":null,"finish_reason":null}]}`,
-      `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"choices":[{"index":0,"delta":{"content":"2. 사용자 승인 요청 필요"},"logprobs":null,"finish_reason":null}]}`
-    );
-  } else {
-    commonData.push(
-      `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"choices":[{"index":0,"delta":{"content":"1. 안전한 시스템 호출 실행: ${systemCall}"},"logprobs":null,"finish_reason":null}]}`,
-      `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"choices":[{"index":0,"delta":{"content":"2. 자동 실행 승인"},"logprobs":null,"finish_reason":null}]}`
-    );
-  }
+  'Bash: {"command": "ls -la /tmp/workspace/code.md 2>&1", "description": "Check if code.md exists"}',
+];
 
-  // Execution details
-  commonData.push(
-    '',
-    `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_${Math.random().toString(36).substr(2, 12)}","type":"function","function":{"name":"execute","arguments":""}}]},"logprobs":null,"finish_reason":null}]}`,
-    `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"{\\"language\\":\\"python\\",\\"code\\":\\"import os\\\\n${systemCall}()\\"}"}}]},"logprobs":null,"finish_reason":null}]}`,
-    '',
-    `data: {"id":"chatcmpl-${Math.random().toString(36).substr(2, 9)}","object":"chat.completion.chunk","created":${unixTime},"choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"tool_calls"}]}`,
-    '',
-    'data: [DONE]'
-  );
-
-  return commonData;
+return [
+  bashCommands[Math.floor(Math.random() * bashCommands.length)]
+];
 }
-
+function generateActions(
+  agentName: string,
+  timestamp: Date,
+  systemCall: string,
+  riskLevel: string
+) {
+  return [
+    {
+      actionNo: 2,
+      agentName,
+      createdAt: timestamp.toISOString(),
+      syscall: "execve",
+      argv: "/usr/bin/git -c core.quotepath=false ls-files --others --exclude-standard",
+      rawSummary:
+        "execve /usr/bin/git /usr/bin/git -c core.quotepath=false ls-files --others --exclude-standard",
+      meaning: "Git 저장소 조회",
+      ruleResult: "safe",
+    },
+    {
+      actionNo: 3,
+      agentName,
+      createdAt: timestamp.toISOString(),
+      syscall: systemCall,
+      argv: systemCall === "lstat" ? "lstat /dev/shm/test.txt" : "cat /dev/shm/test.txt",
+      rawSummary:
+        systemCall === "lstat"
+          ? "lstat /dev/shm/test.txt"
+          : "execve /usr/bin/cat cat /dev/shm/test.txt",
+      meaning: riskLevel === "harmful" ? "위험 가능성이 있는 시스템 작업" : "파일 또는 경로 상태 조회",
+      ruleResult: riskLevel === "normal" ? "safe" : "review",
+    },
+  ];
+}
 // Mock data generator
 function generateMockLog(id: number, timestamp: Date): LogData {
   const riskLevels: Array<"harmful" | "ambiguous" | "normal"> = ["harmful", "ambiguous", "normal"];
@@ -128,6 +138,14 @@ function generateMockLog(id: number, timestamp: Date): LogData {
     "사용자 인증 정보에 접근했습니다.",
   ];
 
+  const prompts = [
+  "현재 폴더 상태를 확인해줘",
+  "RAM에 hello 파일을 만들고 내용을 읽어줘",
+  "프로젝트 파일 목록을 확인해줘",
+  "임시 파일을 생성하고 실행 결과를 보여줘",
+  "Git 저장소에서 변경되지 않은 파일을 확인해줘",
+];
+
   const riskLevel = riskLevels[Math.floor(Math.random() * riskLevels.length)];
 
   // Only harmful logs require approval
@@ -140,18 +158,22 @@ function generateMockLog(id: number, timestamp: Date): LogData {
 
   // Generate detailed logs
   const detailLogs = generateDetailLogs(systemCall, riskLevel, timestamp);
+  const model = models[Math.floor(Math.random() * models.length)];
 
   return {
     id: `LOG-${String(id).padStart(6, "0")}`,
     timestamp,
     eventName: events[Math.floor(Math.random() * events.length)],
     riskLevel,
-    model: models[Math.floor(Math.random() * models.length)],
+    model,
     systemCall,
     description: descriptions[Math.floor(Math.random() * descriptions.length)],
     requiresApproval,
     approvalStatus: null,
+    
     detailLogs,
+    userPrompt: prompts[Math.floor(Math.random() * prompts.length)],
+    actions: generateActions(model, timestamp, systemCall, riskLevel),
   };
 }
 

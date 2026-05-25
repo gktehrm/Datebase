@@ -6,3 +6,22 @@ dist/
 
 .env
 **/.env
+
+.venv/
+__pycache__/
+*.pyc
+*.pth
+*.whl
+result.txt
+
+model_learning_cap/guard-lora/
+model_learning_cap/checkpoints/
+
+*.pt
+*.bin
+*.safetensors
+
+trainer_state.json
+optimizer.pt
+scheduler.pt
+scaler.pt
